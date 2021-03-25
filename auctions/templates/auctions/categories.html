@@ -1,0 +1,87 @@
+{% extends "auctions/layout.html" %}
+
+{% block styles %}
+    <style>
+        .containers{
+            border: black;
+            background-color: #ffffff;
+            
+        }
+        .containers:hover {
+            box-shadow: 0 15px 30px 0 #0000001c,0 5px 15px 0 rgba(0,0,0,0.08);
+            border-radius: 0.5rem;
+            border-left: 0 solid #80b3ff;
+            transition: border-left 300ms ease-in-out, padding-left 300ms ease-in-out;
+            padding-left: 0.5rem;
+            border-left: 0.5rem solid #80b3ff;
+        }
+
+        .containers > :first-child {
+            margin-top: 0;
+        }
+
+        .containers > :last-child {
+            margin-bottom: 0;
+        }
+    </style>
+
+{% endblock %}
+{% block body %}
+    <h2>Categories</h2>
+    <br>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-2">
+                    <form action="{% url 'view_categories' %}" method="GET">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="categories" id="cat_all" value="all" checked>
+                            <label class="form-check-label" for="cat_all">
+                              All
+                            </label>
+                        </div>
+                        {{form}}
+                        {% for cat in categories %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="categories" id="cat_{{cat.id}}" value="{{cat.id}}">
+                                <label class="form-check-label" for="cat_{{cat.id}}">
+                                {{cat.name}}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <br>
+                        <button type="submit" style="width: 50%;" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+                    </form>
+                    
+                </div>
+                <!-- <div style="border-left:1px solid #9c9b98;height:500px"></div> -->
+                <div class="col-md-10">
+                    <div class="row">
+                        {% for result in listings %}
+                            <div class="col-md-3 border containers">
+                                <br>
+                                <a href="{% url 'view_list' result.id %}" style="text-decoration:none;">
+                                    <img style="width: 100px;height:100px;display: block;margin: auto;" src="{{result.image_url}}">
+                                    <p style="text-align: center;padding-top: 5px;color: black;"><b>{{result.title}}</b></p>
+                                    <p style="text-align: center;font-size: 20px;background-color: #0276c9;" class="text-light">$.{{result.start_bid}}</p>
+                                </a>    
+                            </div>
+                        {% empty %}
+                        {% endfor %}
+                        
+
+                    </div>
+                    
+                    
+                </div>
+            </div>
+            
+        </div>
+{% endblock %}
+{% block js %}
+<script>
+    window.addEventListener('load', function () {
+        var initialdata = document.getElementById('nav_cat');
+        initialdata.setAttribute('class', 'nav-item active');
+    });
+</script>
+{% endblock %}

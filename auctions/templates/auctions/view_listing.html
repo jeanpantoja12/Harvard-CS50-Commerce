@@ -1,0 +1,231 @@
+{% extends "auctions/layout.html" %}
+{% block styles %}
+        <style>
+        p {
+            font-size:18px;
+        }   
+        </style>
+        <style>
+            .alternative{
+                width: 50%;
+                    text-align: center;
+                    font-weight: bold;
+                    color: white;
+                    background-color: #3690ff ;
+            }
+        </style>
+        {% if list.status == 'AC' %}
+            <style>
+                .status{
+                    width: 50%;
+                    text-align: center;
+                    font-weight: bold;
+                    color: white;
+                    background-color:#10b336 ;
+                }
+            </style>
+            
+        {% elif list.status == 'PA' %}
+            <style>
+                .status{
+                    width: 50%;
+                    text-align: center;
+                    font-weight: bold;
+                    color: white;
+                    background-color:#d9ca00 ;
+                }
+            </style>
+            
+        {% else %}
+            <style>
+                .status{
+                    width: 50%;
+                    text-align: center;
+                    font-weight: bold;
+                    color: white;
+                    background-color:#990209 ;
+                }
+            </style>
+            
+        {% endif %}
+    <style>
+        .user {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            background-color: #3690ff;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            }
+
+        .text {
+            text-align: center;
+            }
+    </style>
+{% endblock %}
+{% block body %}
+    
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-6 bg-white">
+                    <img style="width: 400px;height: 400px;display: block; margin: auto;padding-top: 10%;" src="{{list.image_url}}">
+                </div>
+                <div class="col-md-6">
+                    <h2 style="width: 100%;color: white;text-align: center; background-color: #0276c9;">{{list.title}}</h2>
+                    <br>
+                    <div class="row">
+                        <div class="col-md-6">
+                            
+                            <h5>Current Price</h5>
+                            <p class="text-left" style="color:#80b3ff;font-size: 30px;">$.{{list.start_bid}}</p>
+                            <h5>Status</h5>
+                            <div class="row col-md-12">
+                                <p class="status">{{list.get_status_display|capfirst}}</p>
+                                {% if is_mine %}
+                                <p class="alternative">Your Auction</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Details</h5>
+                            <p class="text-muted"><b>Date:</b> {{list.created_date}}</p>
+                            <p class="text-muted"><b>Created by:</b>  {{list.user.username}}</p>
+                            <p class="text-muted"><b>Current Bids:</b> {{bids}}</p>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+
+                    {% if is_mine and status == 'AC' %}
+                    <form action="{% url 'remove_list' list.id %}" method="POST">
+                        {% csrf_token %}
+                        <h4>Options:</h4>
+                        <input type="submit" value="Close Auction" style="width: 100%;" class="btn btn-danger">
+                    </form>
+                        
+                    {% else %}
+                        {% if user.is_authenticated and status == 'AC' %}
+                        <br>
+                            {% if not is_valid %}
+                            <div class="container pt-3">
+                                <div class="alert alert-danger" role="alert" id="alert">
+                                Error, your current bid is not valid.
+                                </div>
+                        
+                            </div>
+                            {% endif %}
+                        
+                            <form action="{% url 'view_list' list.id %}" method="POST">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <!-- <input type="number" class="form-control form-control-user" placeholder="Insert Bid"> -->
+                                    {{bid_form}}
+                                    <input style="width: 100%;"  type="submit" value="Place Bid" class="btn btn-primary">
+                                </div>
+                                
+                            </form>
+                            {% if not is_watchlist %}
+                                <form action="{% url 'add_watchlist' list.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <input style="width: 100%;"  type="submit" value="Add to Watchlist" class="btn btn-info">
+                                </form>
+                            {% else %}
+                            <form action="{% url 'remove_watchlist' list.id %}" method="POST">
+                                {% csrf_token %}
+                                <input style="width: 100%;"  type="submit" value="Remove from Watchlist" class="btn btn-danger">
+                            </form>
+                            {% endif %}
+                        {% else %}
+                            {% if is_winner %}
+                            <div class="container pt-3">
+                                <div class="alert alert-primary" role="alert" id="alert">
+                                  You won this listing.
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+            <hr>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Item Description</h2>
+                    <p class="text-justify">{{list.description}}</p>
+                </div>
+                
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <h3>Comments</h3>
+                        </div>
+                        {% if user.is_authenticated and status == 'AC' %}
+                        <div class="col-md-2">
+                            <button style="width: 100%;" onclick="add_comment_modal('{% url 'add_comment' list.id %}');"  class="btn btn-primary"><i class="fa fa-plus"></i> Add comment</button>
+                        </div>
+                        {% endif %}
+                        
+                    </div>
+                    
+                    <hr>
+                    {% if comments %}
+                    <div class="row">
+                        {% for comment in comments %}
+                        <div class="col-md-3">
+                            <center>
+                                <div class="user text">
+                                    <h1 style="vertical-align: middle;display: inline-block;line-height: normal;">
+                                        {{comment.user}}
+                                    </h1>
+                            </center>
+                            
+                        </div>
+                        <div class="col-md-9">
+                            <h4>Opinion</h4>
+                            {{comment.date}}
+                            <p>{{comment.message}}</p>
+                        </div>
+                        </div>
+                        
+                        <hr>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-md-12">
+                            <p>There are not comments yet.</p>
+                        </div>
+                    </div>
+                        
+                    {% endif %}
+                    
+                </div>
+            </div>
+        
+    </div>
+    <div class="modal fade" id="addComment" role="dialog">
+
+    </div>
+{% endblock %}
+{% block js %}
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        function add_comment_modal(url)
+        {
+            $('#addComment').load(url, function(){
+                $(this).modal('show');
+            });
+        }
+    </script>
+{% endblock %}
